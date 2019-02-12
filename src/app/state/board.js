@@ -1,24 +1,6 @@
-import { getListById, updateArray2 as updateArray, card, list } from 'app/utils/board'
+import { getListById, getListByItemId, updateArray, card, list, dummy } from 'app/utils/board'
 
 const storage = window.localStorage
-
-const dummy = [
-  list('One', [
-    card('1 1'),
-    card('1 2'),
-    card('1 3'),
-  ]),
-  list('Two', [
-    card('2 1'),
-    card('2 2'),
-    card('2 3'),
-  ]),
-  list('Three', [
-    card('3 1'),
-    card('3 2'),
-    card('3 3'),
-  ]),
-]
 
 const state = {
   lists: [],
@@ -28,12 +10,16 @@ const getters = {
   getListById: state => listId => {
     return getListById(state.lists, listId)
   },
+
+  getListByItemId: state => itemId => {
+    return getListByItemId(state.lists, itemId)
+  },
 }
 
 const actions = {
   load ({ commit }, mock) {
     const lists = mock
-      ? dummy
+      ? dummy()
       : storage.getItem('lists')
     commit('lists', lists || [])
   },
@@ -42,6 +28,10 @@ const actions = {
 const mutations = {
   lists (state, value) {
     state.lists = value
+  },
+
+  reset (state) {
+    state.lists = []
   },
 
   addList (state, { title }) {
@@ -53,7 +43,8 @@ const mutations = {
   },
 
   removeList (state, { listId }) {
-    // not implemented
+    const index = state.lists.findIndex(list => list.id === listId)
+    state.lists.splice(index, 1)
   },
 
   addItem (state, { listId, title, description, date }) {
@@ -75,7 +66,8 @@ const mutations = {
   },
 
   removeItem (state, { itemId }) {
-    // not implemented
+    const list = getListByItemId(state.lists, itemId)
+    list.items.splice(list.items.findIndex(item => item.id === itemId), 1)
   }
 }
 
