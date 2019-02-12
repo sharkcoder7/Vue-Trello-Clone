@@ -1,8 +1,36 @@
-# trello
+# Vue Trello Clone
 
-> A simple Trello clone
+A simple Trello clone in Vue, Vuex and Bulma
 
-## Build Setup
+![screenshot](docs/screenshot.png)
+
+
+## Features
+
+Trello features
+
+- Single board
+- Re-orderable lists and tasks
+
+Task functionality
+
+- Title, description, date
+- Quick entry and full entry modal
+- Icons and colors to indicate due and overdue items
+- Editable tasks
+
+UI features
+
+- Fast keyboard interaction
+- Smooth animation
+
+State management
+
+- Vuex state management
+- Persistence
+
+
+## Setup
 
 ``` bash
 # install dependencies
@@ -19,6 +47,7 @@ npm run build --report
 
 # run unit tests
 npm run unit
+npm run unit:watch
 
 # run all tests
 npm test

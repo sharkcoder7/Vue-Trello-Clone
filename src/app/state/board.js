@@ -1,8 +1,10 @@
-import { card, list } from 'app/utils/objects'
-import { getItemById, getListById, getListByItemId, updateArray } from 'app/utils/board'
+import { makeItem, makeList } from 'app/utils/data'
+import { getItemById, getListById, getListByItemId } from 'app/utils/board'
 
-const state = {
-  lists: [],
+export function state () {
+  return {
+    lists: [],
+  }
 }
 
 const getters = {
@@ -19,7 +21,7 @@ const getters = {
   }
 }
 
-const mutations = {
+export const mutations = {
   lists (state, value) {
     state.lists = value
   },
@@ -29,11 +31,11 @@ const mutations = {
   },
 
   addList (state, { title }) {
-    state.lists.push(list(title))
+    state.lists.push(makeList(title))
   },
 
-  moveList (state, { removedIndex, addedIndex }) {
-    state.lists = updateArray(state.lists, removedIndex, addedIndex)
+  moveList (state, [fromIndex, toIndex]) {
+    state.lists.splice(toIndex, 0, state.lists.splice(fromIndex, 1)[0])
   },
 
   removeList (state, { listId }) {
@@ -43,27 +45,24 @@ const mutations = {
 
   addItem (state, { listId, title, description, date }) {
     const list = getListById(state.lists, listId)
-    list.items.push(card(title, description, date))
+    list.items.push(makeItem(title, description, date))
   },
 
   updateItem (state, { itemId, title, description, date }) {
     const item = getItemById(state.lists, itemId)
     if (item) {
-      Object.assign(item, card(title, description, date, itemId))
+      Object.assign(item, makeItem(title, description, date, itemId))
     }
   },
 
-  moveItem (state, { listId, removedIndex, addedIndex, payload }) {
-    // find containing list of item
-    const list = getListById(state.lists, listId)
-
-    // copy list and move item
-    const newList = Object.assign({}, list)
-    newList.items = updateArray(newList.items, removedIndex, addedIndex, payload)
-
-    // replace old list with copy
-    const listIndex = state.lists.indexOf(list)
-    state.lists.splice(listIndex, 1, newList)
+  moveItem (state, [fromListRef, fromIndex, toListRef, toIndex]) {
+    const fromList = typeof fromListRef === 'number'
+      ? state.lists[fromListRef].items
+      : getListById(state.lists, fromListRef)
+    const toList = typeof toListRef === 'number'
+      ? state.lists[toListRef].items
+      : getListById(state.lists, toListRef)
+    toList.splice(toIndex, 0, fromList.splice(fromIndex, 1)[0])
   },
 
   removeItem (state, { itemId }) {

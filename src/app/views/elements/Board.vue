@@ -14,7 +14,7 @@
           drag-handle-selector=".list-drag-handle"
           @drop="onListDrop"
         >
-          <Draggable v-for="list in lists" :key="list.id">
+          <Draggable v-for="(list, listIndex) in lists" :key="list.id">
             <section class="list-container" ref="list" :data-id="list.id">
 
               <div class="list-header">
@@ -28,8 +28,7 @@
                 drop-class="card-ghost-drop"
                 non-drag-area-selector=".icon"
                 :animation-duration="100"
-                :get-child-payload="getItemPayload(list.id)"
-                @drop="e => onCardDrop(list.id, e)"
+                @drop="e => onCardDrop(e, list, listIndex)"
               >
                 <Draggable v-for="item in list.items" :key="item.id">
                   <Card :item="item" @edit="editItem"/>
@@ -77,6 +76,7 @@ import { Container, Draggable } from 'vue-smooth-dnd'
 import Card from './Card'
 import UiItemForm from '../ui/UiItemForm'
 import UiItemEntry from '../ui/UiItemEntry'
+import { makeDropHandler } from '../../utils/plugins'
 
 export default {
   components: {
@@ -101,16 +101,6 @@ export default {
   },
 
   methods: {
-    onListDrop: function (event) {
-      this.$store.commit('moveList', event)
-    },
-
-    onCardDrop: function (listId, event) {
-      if (event.removedIndex !== null || event.addedIndex !== null) {
-        this.$store.commit('moveItem', { listId, ...event })
-      }
-    },
-
     onAddList ({ text }) {
       this.$store.commit('addList', { title: text })
       this.$nextTick(() => {
@@ -146,11 +136,21 @@ export default {
       this.showModal(item)
     },
 
-    getItemPayload: function (listId) {
-      return index => {
-        const list = this.$store.getters['getListById'](listId)
-        return list.items[index]
-      }
+    onListDrop: makeDropHandler('onListDropComplete'),
+
+    onListDropComplete: function (src, trg) {
+      this.$store.commit('moveList', [src.index, trg.index])
+    },
+
+    onCardDrop: makeDropHandler('onCardDropComplete'),
+
+    onCardDropComplete (src, trg, element, payload) {
+      this.$store.commit('moveItem', [
+        src.params[1],
+        src.index,
+        trg.params[1],
+        trg.index,
+      ])
     },
 
     showModal (item) {
